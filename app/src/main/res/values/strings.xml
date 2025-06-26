@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Picture Marker</string>
+    <string name="select_images">选择图片</string>
+    <string name="quick_watermark">快速添加水印</string>
+    <string name="custom_watermark">自定义水印</string>
+    <string name="save">保存</string>
+    <string name="select">选择</string>
+    <string name="overwrite_original">覆盖原图</string>
+    <string name="save_as_new">保存为新图</string>
+    <string name="select_position">选择水印位置</string>
+    <string name="back">返回</string>
+</resources>

@@ -1,0 +1,31 @@
+R_DEF: Internal format may change without notice
+local
+drawable ic_launcher_background
+drawable ic_launcher_foreground
+id btnBack
+id btnConfirm
+id btnCustomWatermark
+id btnQuickWatermark
+id btnSelectImages
+id cbSelect
+id guideline
+id ivPreview
+id ivThumbnail
+id rvImages
+layout activity_image_selection
+layout activity_main
+layout activity_watermark
+layout item_image
+mipmap ic_launcher
+mipmap ic_launcher_round
+string app_name
+string back
+string custom_watermark
+string overwrite_original
+string quick_watermark
+string save
+string save_as_new
+string select
+string select_images
+string select_position
+style Theme.PictureMarker

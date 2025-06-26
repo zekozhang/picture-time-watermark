@@ -1,0 +1,22 @@
+[
+    {
+        "merged": "com.example.picturemarker.app-mergeDebugResources-32:/layout/activity_watermark.xml",
+        "source": "com.example.picturemarker.app-main-35:/layout/activity_watermark.xml"
+    },
+    {
+        "merged": "C:\\Develop\\gradle-8.14.2\\daemon\\8.14.2\\com.example.picturemarker.app-mergeDebugResources-32:\\layout\\activity_watermark.xml",
+        "source": "C:\\Develop\\gradle-8.14.2\\daemon\\8.14.2\\com.example.picturemarker.app-main-35:\\layout\\activity_watermark.xml"
+    },
+    {
+        "merged": "C:\\Develop\\gradle-8.14.2\\daemon\\8.14.2\\com.example.picturemarker.app-mergeDebugResources-32:\\layout\\activity_image_selection.xml",
+        "source": "C:\\Develop\\gradle-8.14.2\\daemon\\8.14.2\\com.example.picturemarker.app-main-35:\\layout\\activity_image_selection.xml"
+    },
+    {
+        "merged": "C:\\Develop\\gradle-8.14.2\\daemon\\8.14.2\\com.example.picturemarker.app-mergeDebugResources-32:\\layout\\item_image.xml",
+        "source": "C:\\Develop\\gradle-8.14.2\\daemon\\8.14.2\\com.example.picturemarker.app-main-35:\\layout\\item_image.xml"
+    },
+    {
+        "merged": "C:\\Develop\\gradle-8.14.2\\daemon\\8.14.2\\com.example.picturemarker.app-mergeDebugResources-32:\\layout\\activity_main.xml",
+        "source": "C:\\Develop\\gradle-8.14.2\\daemon\\8.14.2\\com.example.picturemarker.app-main-35:\\layout\\activity_main.xml"
+    }
+]
