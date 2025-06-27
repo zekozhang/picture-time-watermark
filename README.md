@@ -21,7 +21,7 @@ Tap "Add Watermark"
 
 Wait for processing—new images will be saved automatically
 
-Technical Highlights
+## Technical Highlights
 Native Android implementation
 
 Reads EXIF metadata for accurate timestamps
