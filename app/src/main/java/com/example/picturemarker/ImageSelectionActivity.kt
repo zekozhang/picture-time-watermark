@@ -35,7 +35,8 @@ class ImageSelectionActivity : AppCompatActivity() {
 
         when {
             ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED -> {
-                loadImages()
+                //loadImages()
+                loadAlbums()
             }
             ActivityCompat.shouldShowRequestPermissionRationale(this, permission) -> {
                 // 解释为什么需要权限
@@ -93,6 +94,72 @@ class ImageSelectionActivity : AppCompatActivity() {
         }
     }
 
+    private fun loadAlbums() {
+        val albums = getAlbumsFromStorage()
+
+        binding.rvAlbums.adapter = AlbumAdapter(albums) { album ->
+            // 当相册被选中时，更新图片列表
+            binding.rvImages.adapter = ImageAdapter(album.imageFiles) { file, isSelected ->
+                if (isSelected) {
+                    selectedImages.add(file)
+                } else {
+                    selectedImages.remove(file)
+                }
+            }
+        }
+
+        // 默认加载第一个相册
+        if (albums.isNotEmpty()) {
+            binding.rvImages.adapter = ImageAdapter(albums[0].imageFiles, { file, isSelected ->
+                if (isSelected) {
+                    selectedImages.add(file)
+                } else {
+                    selectedImages.remove(file)
+                }
+            })
+        }
+    }
+
+    private fun getAlbumsFromStorage(): List<Album> {
+        val albumsMap = mutableMapOf<String, MutableList<File>>()
+        val projection = arrayOf(
+            MediaStore.Images.Media._ID,
+            MediaStore.Images.Media.DATA,
+            MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
+            MediaStore.Images.Media.DATE_MODIFIED
+        )
+
+        // 添加排序条件
+        val sortOrder = "${MediaStore.Images.Media.BUCKET_DISPLAY_NAME} ASC, ${MediaStore.Images.Media.DATE_MODIFIED} DESC"
+
+        contentResolver.query(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            projection,
+            null,
+            null,
+            sortOrder
+        )?.use { cursor ->
+            Log.d("AlbumQuery", "Cursor count: ${cursor.count}")
+            
+            val bucketNameColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
+            val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+
+            while (cursor.moveToNext()) {
+                val bucketName = cursor.getString(bucketNameColumn) ?: continue
+                val path = cursor.getString(dataColumn) ?: continue
+
+                // 确保文件存在
+                val file = File(path).takeIf { it.exists() } ?: continue
+                albumsMap.getOrPut(bucketName) { mutableListOf() }.add(file)
+            }
+        }
+
+        return albumsMap.map { (name, files) ->
+            // 按修改时间排序，确保封面是最新图片
+            val sortedFiles = files.sortedByDescending { it.lastModified() }
+            Album(name, sortedFiles.first().absolutePath, sortedFiles)
+        }
+    }
     private fun getImageFilesFromStorage(): List<File> {
         val imageFiles = mutableListOf<File>()
 

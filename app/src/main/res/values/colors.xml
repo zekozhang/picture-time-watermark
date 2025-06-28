@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material Blue 500 -->
+    <color name="blue_500">#2196F3</color>
+
+    <!-- 可选：添加其他蓝色变体 -->
+    <color name="blue_400">#42A5F5</color>
+    <color name="blue_600">#1E88E5</color>
+</resources>

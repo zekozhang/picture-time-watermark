@@ -21,6 +21,7 @@ class ImageAdapter(
     inner class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageView: ImageView = itemView.findViewById(R.id.ivThumbnail)
         val checkBox: CheckBox = itemView.findViewById(R.id.cbSelect)
+        val overlay: View = itemView.findViewById(R.id.selectedOverlay)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
@@ -30,37 +31,30 @@ class ImageAdapter(
     }
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
-        Log.d("Adapter", "Binding position $position")
-        val file = imageFiles[position]
+        val safePosition = holder.bindingAdapterPosition.takeIf { it != RecyclerView.NO_POSITION }
+            ?: return
 
-        // 使用Glide加载图片
+        val file = imageFiles[safePosition]
+        val isSelected = selectedItems.contains(safePosition)
+
         Glide.with(holder.itemView.context)
             .load(file)
+            .thumbnail(0.1f)
             .into(holder.imageView)
 
-        holder.checkBox.isChecked = selectedItems.contains(position)
+        holder.checkBox.isChecked = isSelected
+        holder.overlay.visibility = if (isSelected) View.VISIBLE else View.GONE
 
         holder.itemView.setOnClickListener {
-            Log.d("Adapter", "1. Click detected on position $position")
-            val isSelected = !selectedItems.contains(position)
-            if (isSelected) {
-                selectedItems.add(position)
+            val newSelected = !isSelected
+            if (newSelected) {
+                selectedItems.add(safePosition)
             } else {
-                selectedItems.remove(position)
+                selectedItems.remove(safePosition)
             }
-            holder.checkBox.isChecked = isSelected
-            onItemSelected(file, isSelected)
+            notifyItemChanged(safePosition)
+            onItemSelected(file, newSelected)
         }
-
-        /*holder.checkBox.setOnCheckedChangeListener { _, isChecked ->
-            Log.d("Adapter", "2. Click detected on position $position")
-            if (isChecked) {
-                selectedItems.add(position)
-            } else {
-                selectedItems.remove(position)
-            }
-            onItemSelected(file, isChecked)
-        }*/
     }
 
     override fun getItemCount() = imageFiles.size
