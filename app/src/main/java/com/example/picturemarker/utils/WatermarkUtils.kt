@@ -58,7 +58,7 @@ object WatermarkUtils {
                 // textSize = 40f
                 isAntiAlias = true
                 setShadowLayer(5f, 0f, 0f, Color.BLACK) // 添加阴影增强对比度
-                textSize = watermarkedBitmap.width * 0.04f
+                textSize = watermarkedBitmap.width * 0.03f
             }
 
             // 3. Get watermark text (use EXIF date if not provided)

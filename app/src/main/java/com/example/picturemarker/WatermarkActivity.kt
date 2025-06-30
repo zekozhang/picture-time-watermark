@@ -4,22 +4,24 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
-import android.util.Size
+import android.view.GestureDetector
+import android.view.MotionEvent
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GestureDetectorCompat
 import com.bumptech.glide.Glide
 import com.example.picturemarker.databinding.ActivityWatermarkBinding
 import com.example.picturemarker.utils.WatermarkUtils
 import java.io.File
-import java.io.FileOutputStream
 
 class WatermarkActivity : AppCompatActivity() {
     private lateinit var binding: ActivityWatermarkBinding
     private lateinit var imageFiles: List<File>
     private var currentPosition = 0
     private var watermarkPosition = WatermarkUtils.WatermarkPosition.BOTTOM_RIGHT
-
+    private lateinit var gestureDetector: GestureDetectorCompat
     private val watermarkedUris = mutableListOf<Uri>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,11 +30,12 @@ class WatermarkActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         imageFiles = intent.getSerializableExtra("image_files") as List<File>
+        setupGestureDetector()
+        setupNavigationButtons()
         showCurrentImage()
 
         binding.btnQuickWatermark.setOnClickListener {
             applyWatermarkToAll()
-            showCurrentWatermarkedImage()
         }
 
         binding.btnCustomWatermark.setOnClickListener {
@@ -40,17 +43,62 @@ class WatermarkActivity : AppCompatActivity() {
         }
 
         binding.btnBack.setOnClickListener {
-            // 方式1：直接结束当前Activity
             finish()
-
-            // 方式2：如果需要特定跳转
-            // startActivity(Intent(this, MainActivity::class.java))
-            // finish()
         }
+    }
 
-        /*binding.btnSave.setOnClickListener {
-            saveImages(true)
-        }*/
+    private fun setupGestureDetector() {
+        gestureDetector = GestureDetectorCompat(this, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onFling(
+                e1: MotionEvent?,
+                e2: MotionEvent,
+                velocityX: Float,
+                velocityY: Float
+            ): Boolean {
+                val diffX = e2.x - (e1?.x ?: 0f)
+                if (Math.abs(diffX) > 100) { // 滑动阈值
+                    if (diffX > 0) {
+                        showPreviousImage()
+                    } else {
+                        showNextImage()
+                    }
+                    return true
+                }
+                return false
+            }
+        })
+
+        binding.ivPreview.setOnTouchListener { v, event ->
+            gestureDetector.onTouchEvent(event)
+            true
+        }
+    }
+
+    private fun setupNavigationButtons() {
+        binding.btnPrevious.setOnClickListener { showPreviousImage() }
+        binding.btnNext.setOnClickListener { showNextImage() }
+        updateNavButtonVisibility()
+    }
+
+    private fun showPreviousImage() {
+        if (currentPosition > 0) {
+            currentPosition--
+            showCurrentImage()
+            updateNavButtonVisibility()
+        }
+    }
+
+    private fun showNextImage() {
+        if (currentPosition < imageFiles.size - 1) {
+            currentPosition++
+            showCurrentImage()
+            updateNavButtonVisibility()
+        }
+    }
+
+    private fun updateNavButtonVisibility() {
+        binding.btnPrevious.visibility = if (currentPosition > 0) View.VISIBLE else View.INVISIBLE
+        binding.btnNext.visibility = if (currentPosition < imageFiles.size - 1) View.VISIBLE else View.INVISIBLE
     }
 
     private fun showPositionSelectionDialog() {
@@ -76,47 +124,23 @@ class WatermarkActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showCurrentWatermarkedImage() {
-        if (watermarkedUris.isNotEmpty()) {
+    private fun showCurrentImage() {
+        if (watermarkedUris.isNotEmpty() && currentPosition < watermarkedUris.size) {
+            // 显示已加水印的图片
             Glide.with(this)
                 .load(watermarkedUris[currentPosition])
                 .into(binding.ivPreview)
-        }
-    }
-
-    private fun showCurrentImage() {
-        val currentFile = imageFiles[currentPosition]
-        val bitmap = BitmapFactory.decodeFile(currentFile.absolutePath)
-        binding.ivPreview.setImageBitmap(bitmap)
-        return
-
-        /*if (uri == null) {
-            // 回退到文件路径方式
+        } else {
+            // 显示原始图片
             val currentFile = imageFiles[currentPosition]
-            val bitmap = BitmapFactory.decodeFile(currentFile.absolutePath)
-            binding.ivPreview.setImageBitmap(bitmap)
-            return
-        }
-
-        // Preview image with uri
-        try {
-            val bitmap = contentResolver.loadThumbnail(
-                uri,
-                Size(binding.ivPreview.width, binding.ivPreview.height),
-                null
-            )
-            binding.ivPreview.setImageBitmap(bitmap)
-        } catch (e: Exception) {
-            // 备用方案：使用 Glide/Picasso
             Glide.with(this)
-                .load(uri)
+                .load(currentFile)
                 .into(binding.ivPreview)
-        }*/
+        }
     }
 
     private fun applyWatermarkToAll() {
         watermarkedUris.clear()
-
         imageFiles.forEach { file ->
             val uri = WatermarkUtils.addWatermark(this, file, file, watermarkPosition)
             uri?.let { watermarkedUris.add(it) }
@@ -128,30 +152,5 @@ class WatermarkActivity : AppCompatActivity() {
         } else {
             Toast.makeText(this, "水印添加失败", Toast.LENGTH_SHORT).show()
         }
-
-        // Toast.makeText(this, "水印已添加", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun saveImages(saveAsNew: Boolean) {
-        imageFiles.forEach { originalFile ->
-            val outputFile = if (saveAsNew) {
-                // 创建新文件名，在原文件名后添加"_watermarked"
-                val newFile = File(originalFile.parent, "${originalFile.nameWithoutExtension}_watermarked.jpg")
-                originalFile.copyTo(newFile)
-            } else {
-                // 覆盖原文件
-                originalFile
-            }
-
-            /*FileOutputStream(outputFile).use { out ->
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-            }*/
-        }
-
-        Toast.makeText(
-            this,
-            if (saveAsNew) "已保存为新文件" else "已覆盖原文件",
-            Toast.LENGTH_SHORT
-        ).show()
     }
 }

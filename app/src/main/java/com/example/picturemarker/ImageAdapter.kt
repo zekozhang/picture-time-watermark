@@ -13,7 +13,8 @@ import java.io.File
 
 class ImageAdapter(
     private val imageFiles: List<File>,
-    private val onItemSelected: (File, Boolean) -> Unit
+    private val onItemSelected: (File, Boolean) -> Unit,
+    private val isItemSelected: (File) -> Boolean // 新增参数
 ) : RecyclerView.Adapter<ImageAdapter.ImageViewHolder>() {
 
     private val selectedItems = mutableSetOf<Int>()
@@ -35,7 +36,8 @@ class ImageAdapter(
             ?: return
 
         val file = imageFiles[safePosition]
-        val isSelected = selectedItems.contains(safePosition)
+        val isSelected = isItemSelected(file) // 使用外部判断
+        //val isSelected = selectedItems.contains(safePosition)
 
         Glide.with(holder.itemView.context)
             .load(file)
@@ -45,16 +47,32 @@ class ImageAdapter(
         holder.checkBox.isChecked = isSelected
         holder.overlay.visibility = if (isSelected) View.VISIBLE else View.GONE
 
-        holder.itemView.setOnClickListener {
-            val newSelected = !isSelected
-            if (newSelected) {
-                selectedItems.add(safePosition)
-            } else {
-                selectedItems.remove(safePosition)
-            }
-            notifyItemChanged(safePosition)
-            onItemSelected(file, newSelected)
+        // 只设置CheckBox的点击事件
+        holder.checkBox.setOnCheckedChangeListener(null) // 先清除旧的监听器
+        holder.checkBox.isChecked = isSelected
+        holder.checkBox.setOnCheckedChangeListener { _, isChecked ->
+            onItemSelected(file, isChecked)
+            holder.overlay.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
+
+        // itemView点击时切换CheckBox状态
+        holder.itemView.setOnClickListener {
+            it.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100)
+                .withEndAction {
+                    it.animate().scaleX(1f).scaleY(1f).duration = 100
+                    holder.checkBox.isChecked = !holder.checkBox.isChecked
+                }
+        }
+
+        holder.itemView.setOnLongClickListener {
+            // 进入多选模式逻辑
+            true
+        }
+    }
+
+    private fun toggleSelection(file: File, shouldSelect: Boolean) {
+        onItemSelected(file, shouldSelect)
+        notifyItemChanged(imageFiles.indexOf(file))
     }
 
     override fun getItemCount() = imageFiles.size
