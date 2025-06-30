@@ -9,4 +9,6 @@
     <string name="save_as_new">保存为新图</string>
     <string name="select_position">选择水印位置</string>
     <string name="back">返回</string>
+    <string name="confirm_selection">确认选择</string>
+    <string name="no_images_found">没有找到图片</string>
 </resources>
