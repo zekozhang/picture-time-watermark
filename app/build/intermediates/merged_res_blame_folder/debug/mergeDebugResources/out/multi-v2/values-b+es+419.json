@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.picturemarker.app-mergeDebugResources-31:/values-b+es+419/values-b+es+419.xml",
+            "outputFile": "com.example.picturemarker.app-mergeDebugResources-59:/values-b+es+419/values-b+es+419.xml",
             "map": [
                 {
-                    "source": "C:\\Develop\\gradle-8.14.2\\caches\\8.14.2\\transforms\\6a467ed8715a56a55188209c4c5adaf1\\transformed\\material-1.11.0\\res\\values-b+es+419\\values-b+es+419.xml",
+                    "source": "C:\\Develop\\gradle-8.14.2\\caches\\8.14.2\\transforms\\b1e6dce54f3b66a66e79b284a281aafe\\transformed\\material-1.11.0\\res\\values-b+es+419\\values-b+es+419.xml",
                     "from": {
                         "startLines": "2,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",

@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.picturemarker.app-mergeDebugResources-31:/values-h720dp-v13/values-h720dp-v13.xml",
+            "outputFile": "com.example.picturemarker.app-mergeDebugResources-59:/values-h720dp-v13/values-h720dp-v13.xml",
             "map": [
                 {
-                    "source": "C:\\Develop\\gradle-8.14.2\\caches\\8.14.2\\transforms\\4c1f8988006b36a0d3b5641425e8471c\\transformed\\appcompat-1.6.1\\res\\values-h720dp-v13\\values-h720dp-v13.xml",
+                    "source": "C:\\Develop\\gradle-8.14.2\\caches\\8.14.2\\transforms\\1365e34fa8eb285316fdafd96c6faea2\\transformed\\appcompat-1.6.1\\res\\values-h720dp-v13\\values-h720dp-v13.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",

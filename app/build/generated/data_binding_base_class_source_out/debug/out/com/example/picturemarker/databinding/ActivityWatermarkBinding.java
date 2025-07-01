@@ -29,6 +29,12 @@ public final class ActivityWatermarkBinding implements ViewBinding {
   public final Button btnCustomWatermark;
 
   @NonNull
+  public final ImageButton btnNext;
+
+  @NonNull
+  public final ImageButton btnPrevious;
+
+  @NonNull
   public final Button btnQuickWatermark;
 
   @NonNull
@@ -38,11 +44,14 @@ public final class ActivityWatermarkBinding implements ViewBinding {
   public final ImageView ivPreview;
 
   private ActivityWatermarkBinding(@NonNull ConstraintLayout rootView, @NonNull ImageButton btnBack,
-      @NonNull Button btnCustomWatermark, @NonNull Button btnQuickWatermark,
+      @NonNull Button btnCustomWatermark, @NonNull ImageButton btnNext,
+      @NonNull ImageButton btnPrevious, @NonNull Button btnQuickWatermark,
       @NonNull Guideline guideline, @NonNull ImageView ivPreview) {
     this.rootView = rootView;
     this.btnBack = btnBack;
     this.btnCustomWatermark = btnCustomWatermark;
+    this.btnNext = btnNext;
+    this.btnPrevious = btnPrevious;
     this.btnQuickWatermark = btnQuickWatermark;
     this.guideline = guideline;
     this.ivPreview = ivPreview;
@@ -87,6 +96,18 @@ public final class ActivityWatermarkBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.btnNext;
+      ImageButton btnNext = ViewBindings.findChildViewById(rootView, id);
+      if (btnNext == null) {
+        break missingId;
+      }
+
+      id = R.id.btnPrevious;
+      ImageButton btnPrevious = ViewBindings.findChildViewById(rootView, id);
+      if (btnPrevious == null) {
+        break missingId;
+      }
+
       id = R.id.btnQuickWatermark;
       Button btnQuickWatermark = ViewBindings.findChildViewById(rootView, id);
       if (btnQuickWatermark == null) {
@@ -106,7 +127,7 @@ public final class ActivityWatermarkBinding implements ViewBinding {
       }
 
       return new ActivityWatermarkBinding((ConstraintLayout) rootView, btnBack, btnCustomWatermark,
-          btnQuickWatermark, guideline, ivPreview);
+          btnNext, btnPrevious, btnQuickWatermark, guideline, ivPreview);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

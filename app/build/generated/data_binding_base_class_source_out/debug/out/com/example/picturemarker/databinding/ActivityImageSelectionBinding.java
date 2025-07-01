@@ -24,12 +24,21 @@ public final class ActivityImageSelectionBinding implements ViewBinding {
   public final Button btnConfirm;
 
   @NonNull
+  public final View divider;
+
+  @NonNull
+  public final RecyclerView rvAlbums;
+
+  @NonNull
   public final RecyclerView rvImages;
 
   private ActivityImageSelectionBinding(@NonNull ConstraintLayout rootView,
-      @NonNull Button btnConfirm, @NonNull RecyclerView rvImages) {
+      @NonNull Button btnConfirm, @NonNull View divider, @NonNull RecyclerView rvAlbums,
+      @NonNull RecyclerView rvImages) {
     this.rootView = rootView;
     this.btnConfirm = btnConfirm;
+    this.divider = divider;
+    this.rvAlbums = rvAlbums;
     this.rvImages = rvImages;
   }
 
@@ -66,13 +75,26 @@ public final class ActivityImageSelectionBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.divider;
+      View divider = ViewBindings.findChildViewById(rootView, id);
+      if (divider == null) {
+        break missingId;
+      }
+
+      id = R.id.rvAlbums;
+      RecyclerView rvAlbums = ViewBindings.findChildViewById(rootView, id);
+      if (rvAlbums == null) {
+        break missingId;
+      }
+
       id = R.id.rvImages;
       RecyclerView rvImages = ViewBindings.findChildViewById(rootView, id);
       if (rvImages == null) {
         break missingId;
       }
 
-      return new ActivityImageSelectionBinding((ConstraintLayout) rootView, btnConfirm, rvImages);
+      return new ActivityImageSelectionBinding((ConstraintLayout) rootView, btnConfirm, divider,
+          rvAlbums, rvImages);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

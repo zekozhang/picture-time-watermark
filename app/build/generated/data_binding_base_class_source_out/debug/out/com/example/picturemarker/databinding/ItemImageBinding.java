@@ -26,11 +26,15 @@ public final class ItemImageBinding implements ViewBinding {
   @NonNull
   public final ImageView ivThumbnail;
 
+  @NonNull
+  public final View selectedOverlay;
+
   private ItemImageBinding(@NonNull FrameLayout rootView, @NonNull CheckBox cbSelect,
-      @NonNull ImageView ivThumbnail) {
+      @NonNull ImageView ivThumbnail, @NonNull View selectedOverlay) {
     this.rootView = rootView;
     this.cbSelect = cbSelect;
     this.ivThumbnail = ivThumbnail;
+    this.selectedOverlay = selectedOverlay;
   }
 
   @Override
@@ -72,7 +76,13 @@ public final class ItemImageBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ItemImageBinding((FrameLayout) rootView, cbSelect, ivThumbnail);
+      id = R.id.selectedOverlay;
+      View selectedOverlay = ViewBindings.findChildViewById(rootView, id);
+      if (selectedOverlay == null) {
+        break missingId;
+      }
+
+      return new ItemImageBinding((FrameLayout) rootView, cbSelect, ivThumbnail, selectedOverlay);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
