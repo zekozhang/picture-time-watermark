@@ -1,6 +1,5 @@
 package com.example.picturemarker.utils
 
-import android.R.attr.delay
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Context
@@ -16,12 +15,12 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import kotlinx.coroutines.delay
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 object WatermarkUtils {
     fun addWatermark(
@@ -35,59 +34,91 @@ object WatermarkUtils {
             Log.i("Watermark", "输入文件路径: ${originalFile.absolutePath}")
 
             // 1. Get original bitmap
-            /*val options = BitmapFactory.Options()*/
             val options = BitmapFactory.Options().apply {
                 inPreferredConfig = Bitmap.Config.ARGB_8888
             }
-
             options.inJustDecodeBounds = false
             val originalBitmap = BitmapFactory.decodeFile(originalFile.absolutePath, options)
-            Log.i("Watermark", "原始Bitmap尺寸: ${originalBitmap.width}x${originalBitmap.height}") // 检查是否成功加载
+            Log.i("Watermark", "原始Bitmap尺寸: ${originalBitmap.width}x${originalBitmap.height}")
 
             // 2. Create new bitmap with watermark
             val watermarkedBitmap = originalBitmap.copy(Bitmap.Config.ARGB_8888, true)
             val canvas = Canvas(watermarkedBitmap)
-            /*val paint = Paint().apply {
-                color = Color.WHITE
-                textSize = watermarkedBitmap.width * 0.03f
-                isAntiAlias = true
-                setShadowLayer(5f, 0f, 0f, Color.BLACK)
-            }*/
             val paint = Paint().apply {
                 color = Color.WHITE
-                // textSize = 40f
                 isAntiAlias = true
-                setShadowLayer(5f, 0f, 0f, Color.BLACK) // 添加阴影增强对比度
+                setShadowLayer(5f, 0f, 0f, Color.BLACK)
                 textSize = watermarkedBitmap.width * 0.03f
             }
 
-            // 3. Get watermark text (use EXIF date if not provided)
-            val watermarkText = text ?: getExifDateTime(originalFile) ?: 
-                SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date())
+            // 3. Get watermark text
+            val watermarkText = text ?: getExifDateTime(originalFile) ?:
+            SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date())
 
             // 4. Calculate position
             val (x, y) = calculatePosition(watermarkedBitmap, paint, watermarkText, position)
-            Log.i("Watermark", "水印位置: ($x, $y)") // 检查水印坐标
+            Log.i("Watermark", "水印位置: ($x, $y)")
 
             // 5. Draw watermark
             canvas.drawText(watermarkText, x, y, paint)
 
-
-            try {
-                // 6. Save to output file
-                /*FileOutputStream(outputFile).use { out ->
-                    watermarkedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-                }*/
-
-                // 6. Save to MediaStore
-                saveBitmapToMediaStore(context, watermarkedBitmap, originalFile.name)
-            } catch (e: IOException) {
-                Log.d("Watermark", "Save image error: ${e.message}")
-                null
-            }
+            // 6. Save to TimeWatermark directory in Pictures
+            saveBitmapToTimeWatermarkFolder(context, watermarkedBitmap, originalFile.name)
         } catch (e: Exception) {
             e.printStackTrace()
             null
+        }
+    }
+
+    private fun saveBitmapToTimeWatermarkFolder(
+        context: Context,
+        bitmap: Bitmap,
+        originalName: String
+    ): Uri? {
+        val resolver = context.contentResolver
+
+        // Prepare file name
+        val baseName = originalName.substringBeforeLast(".")
+        val extension = originalName.substringAfterLast(".", "jpg")
+        val timestamp = System.currentTimeMillis()
+        val newDisplayName = "wm_${timestamp}_${baseName}.$extension"
+
+        val contentValues = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, newDisplayName)
+            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+            // Save to Pictures/TimeWatermark directory
+            put(MediaStore.Images.Media.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/TimeWatermark")
+            put(MediaStore.Images.Media.IS_PENDING, 1)
+        }
+
+        val uri = resolver.insert(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            contentValues
+        ) ?: return null
+
+        try {
+            resolver.openOutputStream(uri)?.use { out ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+                out.flush()
+            }
+
+            contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
+            resolver.update(uri, contentValues, null, null)
+
+            // Trigger MediaStore scan
+            triggerMediaStoreScan(context, uri)
+
+            val fileSize = getMediaStoreFileSize(resolver, uri)
+            Log.d("Watermark", "Saved to: $uri | File size: ${fileSize / 1024} KB")
+            return uri
+        } catch (e: IOException) {
+            resolver.delete(uri, null, null)
+            throw e
+        } finally {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
+                resolver.update(uri, contentValues, null, null)
+            }
         }
     }
 
@@ -106,10 +137,8 @@ object WatermarkUtils {
         val contentValues = ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, newDisplayName)
             put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
-                put(MediaStore.Images.Media.IS_PENDING, 1)
-            }
+            put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+            put(MediaStore.Images.Media.IS_PENDING, 1)
         }
 
         val uri = resolver.insert(
