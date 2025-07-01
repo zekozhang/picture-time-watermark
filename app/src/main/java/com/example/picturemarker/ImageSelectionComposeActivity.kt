@@ -34,12 +34,24 @@ import coil.request.ImageRequest
 import com.example.picturemarker.ui.theme.PictureMarkerTheme
 import java.io.File
 import androidx.appcompat.app.AlertDialog
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ImageSelectionComposeActivity : ComponentActivity() {
     private val REQUEST_PERMISSION = 1001
@@ -129,9 +141,43 @@ fun ImageSelectionScreen(
     var albums by remember { mutableStateOf<List<Album>>(emptyList()) }
     var selectedAlbumIndex by remember { mutableIntStateOf(0) }
     var selectedImages by remember { mutableStateOf<Set<File>>(emptySet()) }
+    var isRefreshing by remember { mutableStateOf(false) } // 新增：刷新状态
+
+
+    // 新增：旋转动画的角度
+    val infiniteTransition = rememberInfiniteTransition(label = "refresh_transition")
+
+    val rotationAngle by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "refresh_rotation"
+    )
+
+    val finalRotation = if (isRefreshing) rotationAngle else 0f
+
+
+    // 修改刷新函数
+    fun refreshAlbums() {
+        isRefreshing = true
+        selectedImages = emptySet()
+        albums = emptyList() // 清空当前显示
+
+        // 使用协程模拟异步加载
+        CoroutineScope(Dispatchers.IO).launch {
+            val newAlbums = getAlbumsFromStorage(context)
+            withContext(Dispatchers.Main) {
+                albums = newAlbums
+                isRefreshing = false
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
-        albums = getAlbumsFromStorage(context)
+        refreshAlbums()
     }
 
     Scaffold(
@@ -141,6 +187,20 @@ fun ImageSelectionScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = { refreshAlbums() },
+                        enabled = !isRefreshing // 刷新时禁用按钮
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = stringResource(R.string.refresh),
+                            modifier = Modifier
+                                .rotate(finalRotation)
+                                .size(24.dp)
+                        )
                     }
                 }
             )
@@ -155,58 +215,70 @@ fun ImageSelectionScreen(
             }
         }
     ) { padding ->
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            // Side Navigation Rail
-            NavigationRail {
-                albums.forEachIndexed { index, album ->
-                    NavigationRailItem(
-                        selected = selectedAlbumIndex == index,
-                        onClick = { selectedAlbumIndex = index },
-                        icon = {
-                            Icon(
-                                Icons.Default.AccountCircle,
-                                contentDescription = album.name
-                            )
-                        },
-                        label = { Text(album.name) }
-                    )
-                }
+        // 新增：加载指示器
+        if (isRefreshing && albums.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
             }
-
-            // Image Grid
-            if (albums.isNotEmpty()) {
-                val currentAlbum = albums[selectedAlbumIndex]
-                LazyVerticalGrid(
-                    columns = GridCells.Adaptive(120.dp),
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(4.dp)
-                ) {
-                    items(currentAlbum.imageFiles) { file ->
-                        ImageGridItem(
-                            file = file,
-                            isSelected = selectedImages.contains(file),
-                            onSelectedChange = { isSelected ->
-                                selectedImages = if (isSelected) {
-                                    selectedImages + file
-                                } else {
-                                    selectedImages - file
-                                }
-                            }
+        } else {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                // Side Navigation Rail
+                NavigationRail {
+                    albums.forEachIndexed { index, album ->
+                        NavigationRailItem(
+                            selected = selectedAlbumIndex == index,
+                            onClick = { selectedAlbumIndex = index },
+                            icon = {
+                                Icon(
+                                    Icons.Default.AccountCircle,
+                                    contentDescription = album.name
+                                )
+                            },
+                            label = { Text(album.name) }
                         )
                     }
                 }
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("没有找到图片")
+
+                // Image Grid
+                if (albums.isNotEmpty()) {
+                    val currentAlbum = albums[selectedAlbumIndex]
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(120.dp),
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(4.dp)
+                    ) {
+                        items(currentAlbum.imageFiles) { file ->
+                            ImageGridItem(
+                                file = file,
+                                isSelected = selectedImages.contains(file),
+                                onSelectedChange = { isSelected ->
+                                    selectedImages = if (isSelected) {
+                                        selectedImages + file
+                                    } else {
+                                        selectedImages - file
+                                    }
+                                }
+                            )
+                        }
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("没有找到图片")
+                    }
                 }
             }
         }
