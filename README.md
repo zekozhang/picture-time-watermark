@@ -13,13 +13,18 @@
 🎨 Customizable watermark styles: Adjust font, size, color, and position (coming soon)
 
 ## How to Use
-Open the app and tap "Select Photos"
+### Step1 Show photos
+<img width="272" alt="1" src="https://github.com/user-attachments/assets/68de80e4-8382-4f96-9a1a-b3548d2ab2c7" />
 
-Choose one or multiple photos from your gallery
+### Step2 Select photos
+<img width="269" alt="2" src="https://github.com/user-attachments/assets/ab992f11-5071-4931-a4a2-2645a077b9df" />
 
-Tap "Add Watermark"
+### Step3 Add watermark
+<img width="269" alt="3" src="https://github.com/user-attachments/assets/d90fb563-1a24-414f-8750-3b58322c7aeb" />
 
-Wait for processing—new images will be saved automatically
+### Add Result
+<img width="268" alt="4" src="https://github.com/user-attachments/assets/546ec362-eef4-43fb-97d8-9f7007748004" />
+<img width="268" alt="5" src="https://github.com/user-attachments/assets/84477580-f2cd-46d1-879b-104f4fbd6ab7" />
 
 ## Technical Highlights
 Native Android implementation
