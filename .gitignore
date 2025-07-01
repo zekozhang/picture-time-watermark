@@ -3,5 +3,6 @@
 .kotlin/
 build/
 gradle/
+app/build
 gradle-wrapper.properties
 local.properties
